@@ -34,7 +34,7 @@ Please provide answers to these questions using markdown notation and place them
     - [ ] NO - Not Yet
 
 
-3. Please provide a link to the repository you are using for this class.
+3. Please provide a link to the repository you are using for this class.  
 [Github](https://github.com/JackieC2027/CS283) is the repository for this class.
 
 4. Briefly describe what you want to get out of this class.
