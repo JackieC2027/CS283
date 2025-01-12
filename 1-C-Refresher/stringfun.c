@@ -139,7 +139,7 @@ void print_all_words(char *buff, int bufferLength, int stringLength){
         exit(-1);
     }
     if (stringLength == 0){
-        printf("Word Count: 0");
+        printf("Word Count: 0\n");
         exit(0);
     }
     printf("Word Print\n");
