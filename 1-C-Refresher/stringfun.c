@@ -39,11 +39,13 @@ int setup_buff(char *buff, char *user_str, int len) {
     while (*pointerOfEachLetter != '\0'){
         if(*pointerOfEachLetter == ' ' || *pointerOfEachLetter == '\t'){
             if (consecutiveWhitespace == 0){
+                // Adds space for the provided string
                 *bufferPointerToEnd = ' ';
                 bufferPointerToEnd++;
                 lengthOfUserString++;
                 consecutiveWhitespace = 1;
             }
+            // This is under the condition that there are consecutive whitespace.
         }else{
             *bufferPointerToEnd = *pointerOfEachLetter;
             bufferPointerToEnd++;
@@ -169,6 +171,7 @@ void print_all_words(char *buff, int bufferLength, int stringLength){
             }
         }
     }
+    // This prints the last word, as the initial traversal does not account for the length of the last word
     if (startOfWord == 0){
         printf("%d. ", wordCounter);
         for (int startingWordIndex = indexOfNewWord; startingWordIndex < stringLength; startingWordIndex++){
