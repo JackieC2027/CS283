@@ -263,10 +263,18 @@ int main(int argc, char *argv[]){
             printf("Word Count: %d\n", rc);
             break;
         case 'r':
-            reverse_user_string(buff, BUFFER_SZ);
+            rc = reverse_user_string(buff, BUFFER_SZ);
+            if (rc < 0){
+                printf("Error counting words, rc = %d", rc);
+                exit(2);
+            }
             break;
         case 'w':
-            print_all_words(buff, BUFFER_SZ, user_str_len);
+            rc = print_all_words(buff, BUFFER_SZ, user_str_len);
+            if (rc < 0){
+                printf("Error counting words, rc = %d", rc);
+                exit(2);
+            }
             break;
         case 'x':
             printf("Not Implemented!\n");  //you need to implement
