@@ -16,8 +16,8 @@ void print_buff(char *, int);
 //prototypes for functions to handle required functionality
 int  setup_buff(char *, char *, int);
 int  count_words(char *, int, int);
-void reverse_user_string(char* buff, int stringLength);
-void print_all_words(char *buff, int bufferLength, int stringLength);
+int reverse_user_string(char* buff, int stringLength);
+int print_all_words(char *buff, int bufferLength, int stringLength);
 //add additional prototypes here
 
   /** Copies the users string into a buffer that properly cleans consecutive whitespaces
@@ -55,7 +55,7 @@ int setup_buff(char *buff, char *user_str, int len) {
         pointerOfEachLetter++;
     }
     if (lengthOfUserString >= len){
-        exit(-1);
+        return -1;
     }
     while (bufferPointerToEnd < buff + len){
         *bufferPointerToEnd = '.';
@@ -88,10 +88,9 @@ void usage(char *exename){
    */
 int count_words(char *buff, int len, int str_len){
     //YOU MUST IMPLEMENT
-    // this doesnt fully work
     if (str_len > len){
         printf("The length of the provided string is larger than the buffer length");
-        exit(-1);
+        exit(3);
     }
     int wordCounter = 0;
     int startOfWord = 1;
@@ -100,7 +99,7 @@ int count_words(char *buff, int len, int str_len){
             wordCounter++;
             startOfWord = 0;
         }
-        char currentBufferCharacter = buff[eachCharacter];
+        char currentBufferCharacter = *(buff + eachCharacter);
         if(currentBufferCharacter == ' '){
            startOfWord = 1;
         }else{
@@ -115,16 +114,18 @@ int count_words(char *buff, int len, int str_len){
  * 
  * @param buff A pointer to the character buffer for the string that will be processed.
  * @param stringLength The length of the string to be reversed.
+ * @return The response status code
  */
-void reverse_user_string(char* buff, int stringLength){
+int reverse_user_string(char* buff, int stringLength){
     //poss cant use putchar
     printf("Reversed String: ");
     for (int eachLetter = stringLength - 1; eachLetter >= 0; eachLetter--){
-        if (buff[eachLetter] != '.'){
-            putchar(buff[eachLetter]);
+        if (*(buff + eachLetter) != '.'){
+            putchar(*(buff + eachLetter));
         }
     }
     putchar('\n');
+    return 0;
 }
 
 /**
@@ -134,8 +135,10 @@ void reverse_user_string(char* buff, int stringLength){
  * @param buff A pointer to the character buffer for the string that will be processed.
  * @param bufferLength The length of the buffer.
  * @param stringLength The length of the string to be processed.
+ * @return The response status code
  */
-void print_all_words(char *buff, int bufferLength, int stringLength){
+int print_all_words(char *buff, int bufferLength, int stringLength){
+    // sanity checks
     if (stringLength > bufferLength){
         printf("The length of the provided string is larger than the buffer length");
         exit(-1);
@@ -151,7 +154,7 @@ void print_all_words(char *buff, int bufferLength, int stringLength){
     int characterCounter = 0;
     int indexOfNewWord = 0;
     for (int eachCharacter = 0; eachCharacter < stringLength; eachCharacter++){
-        char currentBufferCharacter = buff[eachCharacter];
+        char currentBufferCharacter = *(buff + eachCharacter);
         if (currentBufferCharacter != ' ' && currentBufferCharacter != '.'){
             if (startOfWord){
             indexOfNewWord = eachCharacter;
@@ -163,7 +166,7 @@ void print_all_words(char *buff, int bufferLength, int stringLength){
             if (startOfWord == 0){
                 printf("%d. ", wordCounter);
                 for (int startingWordIndex = indexOfNewWord; startingWordIndex < eachCharacter; startingWordIndex++){
-                    printf("%c", buff[startingWordIndex]);
+                    printf("%c",  *(buff + startingWordIndex));
                 }
                 printf(" (%d)\n", characterCounter);
                 startOfWord = 1;
@@ -175,10 +178,11 @@ void print_all_words(char *buff, int bufferLength, int stringLength){
     if (startOfWord == 0){
         printf("%d. ", wordCounter);
         for (int startingWordIndex = indexOfNewWord; startingWordIndex < stringLength; startingWordIndex++){
-            printf("%c", buff[startingWordIndex]);
+            printf("%c",  *(buff + startingWordIndex));
         }
         printf(" (%d)\n", characterCounter);
     }
+    return 0;
 }
 
 //ADD OTHER HELPER FUNCTIONS HERE FOR OTHER REQUIRED PROGRAM OPTIONS
