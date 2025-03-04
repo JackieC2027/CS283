@@ -9,7 +9,6 @@
 #include "dshlib.h"
 
 void print_dragon();
-int handle_piped_commands(command_list_t *clist);
 
 /*
  * Implement your exec_local_cmd_loop function by building a loop that prompts the 
@@ -109,7 +108,7 @@ int exec_local_cmd_loop(){
                 exec_cmd(&clist.commands[0]);
             }
         }else{
-            handle_piped_commands(&clist);
+            execute_pipeline(&clist);
         }
     }
     free(cmd_buff);
@@ -217,7 +216,7 @@ int exec_cmd(cmd_buff_t *cmd){
     return OK;
 }
 
-int handle_piped_commands(command_list_t *clist){
+int execute_pipeline(command_list_t *clist){
     int numberOfCommands = clist->num;
     int fileReadWriteConditions = 2;
     int numberOfPipes[numberOfCommands - 1][fileReadWriteConditions];
