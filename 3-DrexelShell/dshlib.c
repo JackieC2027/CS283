@@ -55,17 +55,19 @@ int build_cmd_list(char *cmd_line, command_list_t *clist){
             if(commandExecutableNameLength >= EXE_MAX){
                 return ERR_CMD_OR_ARGS_TOO_BIG;
             }
-            strncpy(clist->commands[numberOfCommands].exe, eachPipedCommand, commandExecutableNameLength);
+            strcpy(clist->commands[numberOfCommands].exe, eachPipedCommand);
             clist->commands[numberOfCommands].exe[commandExecutableNameLength] = '\0';
             commandExecutableWhitespace++;
             while(*commandExecutableWhitespace == SPACE_CHAR){
                 commandExecutableWhitespace++;
             }
-            strncpy(clist->commands[numberOfCommands].args, commandExecutableWhitespace, ARG_MAX - 1);
-            clist->commands[numberOfCommands].args[ARG_MAX - 1] = '\0';
+            strcpy(clist->commands[numberOfCommands].args, commandExecutableWhitespace);
+            int nullTerminatedArgumentIndex = ARG_MAX - 1;
+            clist->commands[numberOfCommands].args[nullTerminatedArgumentIndex] = '\0';
         }else{
-            strncpy(clist->commands[numberOfCommands].exe, eachPipedCommand, EXE_MAX - 1);
-            clist->commands[numberOfCommands].exe[EXE_MAX - 1] = '\0';
+            strcpy(clist->commands[numberOfCommands].exe, eachPipedCommand);
+            int nullTerminatedCommandIndex = EXE_MAX - 1;
+            clist->commands[numberOfCommands].exe[nullTerminatedCommandIndex] = '\0';
             clist->commands[numberOfCommands].args[0] = '\0';
         }
         numberOfCommands++;
