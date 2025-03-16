@@ -127,10 +127,11 @@ int boot_server(char *ifaces, int port){
     }
     int enable = 1;
     setsockopt(svr_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+    memset(&addr, 0, sizeof(struct sockaddr_in));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(ifaces);
     addr.sin_port = htons(port);
-    ret = bind(svr_socket, (const struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+    ret = bind(svr_socket, (struct sockaddr *)&addr, sizeof(addr));
     if(ret == -1){
         return ERR_RDSH_COMMUNICATION;
     }
@@ -190,10 +191,12 @@ int boot_server(char *ifaces, int port){
  */
 int process_cli_requests(int svr_socket){
     int     cli_socket;
-    int     rc = OK;    
+    int     rc = OK;
+    struct sockaddr_in socketAddr;
+    socklen_t serverSocketLength = sizeof(socketAddr);    
 
     while(1){
-        cli_socket = accept(svr_socket, NULL, NULL);
+        cli_socket = accept(svr_socket, (struct sockaddr *)&socketAddr, &serverSocketLength);
         if(cli_socket == -1){
             return ERR_RDSH_COMMUNICATION;
         }
@@ -205,7 +208,7 @@ int process_cli_requests(int svr_socket){
         // TODO use the accept syscall to create cli_socket 
         // and then exec_client_requests(cli_socket)
     }
-    stop_server(cli_socket);
+    stop_server(svr_socket);
     return rc;
 }
 
@@ -253,13 +256,11 @@ int process_cli_requests(int svr_socket){
 int exec_client_requests(int cli_socket) {
     int io_size;
     command_list_t cmd_list;
-    int rc;
-    char *io_buff;
-    Built_In_Cmds bi_cmd;
+    int cmd_rc;
+    char* io_buff;
 
     io_buff = malloc(RDSH_COMM_BUFF_SZ);
     if (io_buff == NULL){
-        free(io_buff);
         return ERR_RDSH_SERVER;
     }
 
@@ -278,37 +279,17 @@ int exec_client_requests(int cli_socket) {
             return ERR_RDSH_COMMUNICATION;
         }
         io_buff[io_size - 1] = '\0';
-        bi_cmd = rsh_match_command(io_buff);
-        if(bi_cmd == BI_CMD_EXIT){
-            free(io_buff);
-            return OK;
+        if(build_cmd_list(io_buff, &cmd_list) != 0){
+            send_message_string(cli_socket, CMD_ERR_RDSH_COMM);
+            send_message_eof(cli_socket);
+            continue;
         }
-        if(bi_cmd == BI_CMD_STOP_SVR){
+        cmd_rc = rsh_execute_pipeline(cli_socket, &cmd_list);
+        send_message_eof(cli_socket);
+        if(cmd_rc == EXIT_SC){
             free(io_buff);
             return OK_EXIT;
         }
-        rc = build_cmd_list(io_buff, &cmd_list);
-        if(rc == WARN_NO_CMDS){
-            send_message_string(cli_socket, CMD_WARN_NO_CMD);
-            send_message_eof(cli_socket);
-            continue;
-        }
-        bi_cmd = rsh_built_in_cmd(&cmd_list.commands[0]);
-        if(bi_cmd == BI_EXECUTED){
-            send_message_string(cli_socket, CMD_WARN_NO_CMD);
-            send_message_eof(cli_socket);
-            continue;
-        }
-        rc = rsh_execute_pipeline(cli_socket, &cmd_list);
-        if(rc == OK_EXIT){
-            free(io_buff);
-            return OK;
-        }
-        rc = send_message_string(cli_socket, io_buff);
-        if(rc != OK){
-            break;
-        }
-        send_message_eof(cli_socket);
     }
     free(io_buff);
     return OK;
@@ -364,7 +345,7 @@ int send_message_string(int cli_socket, char *buff){
     if(io_size == -1){
         return ERR_RDSH_COMMUNICATION;
     }
-    return OK;
+    return send_message_eof(cli_socket);
 }
 
 
@@ -431,14 +412,12 @@ int rsh_execute_pipeline(int cli_sock, command_list_t *clist) {
         if(newProcessID == 0){
             if(i == 0){
                 dup2(cli_sock, STDIN_FILENO);
-            }else{
-                dup2(pipes[i - 1][0], STDIN_FILENO);
             }
             if(i == clist->num - 1){
                 dup2(cli_sock, STDOUT_FILENO);
                 dup2(cli_sock, STDERR_FILENO);
             }else{
-                dup2(pipes[i][0], STDIN_FILENO);
+                dup2(pipes[i][1], STDOUT_FILENO);
             }
             for(int eachPipe = 0; eachPipe < clist->num - 1; eachPipe++){
                 close(pipes[eachPipe][0]);

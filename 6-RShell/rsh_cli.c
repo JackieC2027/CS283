@@ -106,7 +106,7 @@ int exec_remote_cmd_loop(char *address, int port)
     if(rsp_buff == NULL){
         return ERR_MEMORY;
     }
-    cli_socket = start_client(address,port);
+    cli_socket = start_client(address, port);
     if (cli_socket < 0){
         perror("start client");
         return client_cleanup(cli_socket, cmd_buff, rsp_buff, ERR_RDSH_CLIENT);
@@ -122,24 +122,22 @@ int exec_remote_cmd_loop(char *address, int port)
             printf("\n");
             break;
         }
-        cmd_buff[strcspn(cmd_buff,"\n")] = '\0';
-        int currentCommandLength = strlen(cmd_buff);
+        cmd_buff[strcspn(cmd_buff, "\n")] = '\0';
+        int currentCommandLength = strlen(cmd_buff) + 1;
         io_size = send(cli_socket, cmd_buff, currentCommandLength, 0);
         if(io_size == -1){
             return client_cleanup(cli_socket, cmd_buff, rsp_buff, ERR_RDSH_COMMUNICATION);
         }
         while((io_size = recv(cli_socket, rsp_buff, RDSH_COMM_BUFF_SZ, 0))){
-            if(io_size == -1){
+            if(io_size < 0){ 
                 return client_cleanup(cli_socket, cmd_buff, rsp_buff, ERR_RDSH_COMMUNICATION);
             }
-            is_eof = rsp_buff[io_size-1];
-            if(is_eof == RDSH_EOF_CHAR){
+            is_eof = 0;
+            if(rsp_buff[io_size - 1] == RDSH_EOF_CHAR){
                 is_eof = 1;
-            }else{
-                is_eof = 0;
             }
             printf("%s", rsp_buff);
-            if(!is_eof){
+            if(is_eof){
                 break;
             }
         }
@@ -187,6 +185,7 @@ int start_client(char *server_ip, int port){
     addr.sin_port = htons(port);
     ret = connect(cli_socket, (const struct sockaddr *)&addr, sizeof(struct sockaddr_in));
     if(ret == -1){
+        close(cli_socket);
         return ERR_RDSH_CLIENT;
     }
     return cli_socket;
