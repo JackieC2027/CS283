@@ -257,3 +257,23 @@ int execute_pipeline(command_list_t *clist){
     }
     return OK;
 }
+
+int build_cmd_list(char *cmd_line, command_list_t *clist){
+    memset(clist, 0, sizeof(command_list_t));
+    char *eachPipedCommand = strtok(cmd_line, PIPE_STRING);
+    int numberOfCommands = 0;
+    char *startOfCommand = cmd_line;
+    char * endOfCommand = strchr(startOfCommand, PIPE_CHAR);
+    if (strlen(cmd_line) == 0){
+        return WARN_NO_CMDS;
+    }
+    while (eachPipedCommand != NULL){
+        build_cmd_buff(startOfCommand, &clist->commands[numberOfCommands]);
+        numberOfCommands++;
+        startOfCommand = endOfCommand + 1;
+        endOfCommand = strchr(startOfCommand, PIPE_CHAR);
+    }
+    build_cmd_buff(startOfCommand, &clist->commands[numberOfCommands]);
+    clist->num = numberOfCommands++;
+    return OK;
+}
